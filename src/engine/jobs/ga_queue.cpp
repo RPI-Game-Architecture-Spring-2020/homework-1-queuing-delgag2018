@@ -24,11 +24,8 @@ ga_queue::ga_queue(int node_count)
 	t->next = nullptr;
 	head = tail = t;
 
-
-	/*
-	headLock.lock(); 
-	tailLock.lock();
-	*/
+	//headLock.unlock(); 
+	//tailLock.unlock();
 }
 
 ga_queue::~ga_queue()
@@ -37,19 +34,17 @@ ga_queue::~ga_queue()
 	// Free any resources held by the queue.
 	// See https://www.research.ibm.com/people/m/michael/podc-1996.pdf
 
-	
+	//My Code
 	Node* ptr = head;
 	while (ptr)
 	{
 		Node* n = ptr->next;
-		free(ptr->data);
 		free(ptr);
 		ptr = n;
 	}
 	
 	//free(tail);
-
-
+	return;
 }
 
 void ga_queue::push(void* data)
@@ -62,18 +57,16 @@ void ga_queue::push(void* data)
 	// See https://www.research.ibm.com/people/m/michael/podc-1996.pdf
 
 	//My Code
+	Node* newN = new Node();	//Create new node
+	newN->data = data;			//Set node->data to parameter data
+	newN->next = nullptr;		//Set node->next to null
 
-	//Create new node, set data to parameter data, and set its next to null
-	Node* newN = new Node();
-	newN->data = data;
-	newN->next = nullptr;
+	tailLock.lock();			//Using tailLock lock tail and tail->next
+		tail->next = newN;		//Set tail->next to new node
+		tail = newN;			//Set new node as tail
+	tailLock.unlock();			//Unlock tail and tail->
 
-	//Using tailLock to get tail, setting its next to new node, setting new node as tail, and than locking tailLock
-	tailLock.lock();
-		tail->next = newN;
-		tail = newN;
-	tailLock.unlock();
-
+	return;
 }
 
 bool ga_queue::pop(void** data)
@@ -87,22 +80,21 @@ bool ga_queue::pop(void** data)
 
 	//My Code
 
-	//Get headLock to access head
+	//Lock vairables
 	headLock.lock();
-		Node* popN = head;
-		Node* newH = popN->next;
+		Node* popN = head;			//create new Node to store old head
+		Node* newH = popN->next;	//Set new head to old head's next
 		//If head->next points to null
 		if (newH == nullptr)
 		{
-			headLock.unlock();
+			headLock.unlock();	//Free variables
 			return false;
 		}
-		//Set new head
-		head = newH;
 
-	headLock.unlock();	//Unlock headLock,
-	*data = popN->data;	//point data to popN->data
-	free(popN);			//Free memory of popN
+		*data = newH->data;	//point data to newH->data
+		head = newH;		//Set new head
+	headLock.unlock();		//Unlock variables,
+	free(popN);				//Free memory of popN
 	return true;
 }
 

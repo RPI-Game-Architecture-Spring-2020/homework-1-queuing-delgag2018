@@ -13,6 +13,18 @@
 ** Thread-safe queue.
 ** https://www.research.ibm.com/people/m/michael/podc-1996.pdf
 */
+
+
+#include <mutex>          // std::mutex
+
+//structure node t {value: data type, next: pointer to node t}
+struct Node
+{
+	//Node() : data{ nullptr }, next { nullptr } {}
+	void* data = nullptr;
+	Node* next = nullptr;
+};
+
 class ga_queue
 {
 public:
@@ -23,4 +35,13 @@ public:
 	bool pop(void** data);
 
 	int get_count() const;
+
+	//My Code
+
+	//Define head and tail
+	Node* head;
+	Node* tail;
+
+	std::mutex headLock;
+	std::mutex tailLock;
 };
